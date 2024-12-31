@@ -1,6 +1,6 @@
 import e from "express";
 import cors from "cors";
-import { MongoClient, ServerApiVersion } from "mongodb";
+import { MongoClient, ObjectId, ServerApiVersion } from "mongodb";
 import "dotenv/config";
 
 const port = process.env.PORT || 5000;
@@ -24,14 +24,63 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
+
+    const visasCollection = client.db("allVisas").collection("visasData");
+
+    // all apis goes here
+    // add visa to database
+    app.post("/visas/add", async (req, res) => {
+      const visaData = req.body;
+
+      const result = await visasCollection.insertOne(visaData);
+      res.send(result);
+    });
+
+    // get limited {only 6} visas from database
+    app.get("/visas/latests", async (req, res) => {
+      const cursor = visasCollection.find().limit(6);
+      const visas = await cursor.toArray();
+      res.send(visas);
+    });
+    // get visas from database
+    app.get("/visas", async (req, res) => {
+      const cursor = visasCollection.find();
+      const visas = await cursor.toArray();
+      res.send(visas);
+    });
+
+    // get single visa data
+    app.get("/visas/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await visasCollection.findOne(query);
+
+      res.send(result);
+    });
+
+    // get all visas uploader by the each user by filtering with their email
+    app.get("/users/visas/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const result = await visasCollection.find(query).toArray();
+      res.send(result);
+    });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
+
+    // delete my visa
+    app.delete("/users/visas/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await visasCollection.deleteOne(query);
+      res.send(result);
+    });
   } finally {
     // Ensures that the client will close when you finish/error
-    await client.close();
   }
 }
 run().catch(console.dir);
