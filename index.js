@@ -1,4 +1,4 @@
-import e from "express";
+import e, { application } from "express";
 import cors from "cors";
 import { MongoClient, ObjectId, ServerApiVersion } from "mongodb";
 import "dotenv/config";
@@ -25,7 +25,12 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
 
-    const visasCollection = client.db("allVisas").collection("visasData");
+    const visasCollection = client
+      .db("immigroVisaNavigator")
+      .collection("visas");
+    const visasApplication = client
+      .db("immigroVisaNavigator")
+      .collection("applications");
 
     // all apis goes here
     // add visa to database
@@ -77,6 +82,33 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await visasCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    // store users application to database
+    app.post("/users/application", async (req, res) => {
+      const application = req.body;
+      const date = new Date();
+      const today = date.toLocaleDateString();
+      application.appliedDate = today;
+      const result = await visasApplication.insertOne(application);
+      res.send(result);
+    });
+
+    // get single user applications
+    app.get("/users/applications/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const cursor = await visasApplication.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    // delete visa application
+    app.delete("/users/applications/cancel/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await visasApplication.deleteOne(query);
       res.send(result);
     });
   } finally {
