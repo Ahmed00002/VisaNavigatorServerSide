@@ -1,4 +1,4 @@
-import e, { application } from "express";
+import e from "express";
 import cors from "cors";
 import { MongoClient, ObjectId, ServerApiVersion } from "mongodb";
 import "dotenv/config";
