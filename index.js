@@ -71,6 +71,36 @@ async function run() {
       res.send(result);
     });
 
+    //update visas
+    app.patch("/users/visas/:id", async (req, res) => {
+      const id = req.params.id;
+      const data = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updateData = {
+        $set: {
+          countryName: data.countryName,
+          countryImage: data.countryImage,
+          processingTime: data.processingTime,
+          requiredDocuments: data.requiredDocuments,
+          description: data.description,
+          ageRestriction: data.ageRestriction,
+          fee: data.fee,
+          validity: data.validity,
+          applicationMethod: data.applicationMethod,
+          email: data.email,
+          authorName: data.authorName,
+          visaType: data.visaType,
+        },
+      };
+      const result = await visasCollection.updateOne(
+        filter,
+        updateData,
+        options
+      );
+      res.send(result);
+    });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
