@@ -99,7 +99,7 @@ async function run() {
     app.get("/users/applications/:email", async (req, res) => {
       const email = req.params.email;
       const query = { email: email };
-      const cursor = await visasApplication.find(query);
+      const cursor = visasApplication.find(query);
       const result = await cursor.toArray();
       res.send(result);
     });
